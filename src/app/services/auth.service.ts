@@ -1,10 +1,14 @@
 import { Injectable } from '@angular/core';
+
+import firebase from 'firebase/compat/app';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 
-import firebase from 'firebase/compat/app';
+import { Store } from '@ngrx/store';
+import { AppState } from '../app.reducer';
+import * as authActions from '../auth/auth.actions';
 
-import { map } from 'rxjs';
+import { map, Subscription } from 'rxjs';
 import { Usuario } from '../modelos/usuario.model';
 
 
@@ -13,20 +17,43 @@ import { Usuario } from '../modelos/usuario.model';
 })
 export class AuthService {
 
+  userSubscription: Subscription;
+
   constructor(public auth: AngularFireAuth,
-    public firestore: AngularFirestore) { }
+    public firestore: AngularFirestore,
+    private store: Store<AppState>,
+  ) { }
 
   //Metodo para obtener los datos de usuario en firebase
   initAuthListener() {
 
     this.auth.authState.subscribe(fuser => {
-      console.log(fuser);
-      console.log(fuser?.uid);
-      console.log(fuser?.email);
+      // console.log(fuser);
+      // console.log(fuser?.uid);
+      // console.log(fuser?.email);
 
+      if (fuser) {
+        //existe
+        //Aqui disparamos la accion
+        this.userSubscription = this.firestore.doc(`${fuser.uid}/usuario`).valueChanges()
+          .subscribe((firestoreUser: any) => {
 
+            console.log(firestoreUser);
 
-    })
+            //Aqui almacenamos el usuario de firebase en el Store
+            //Primero hay que convertirlo porque no lo puedo enviar como viene de firebase
+            const user = Usuario.fromFirebase(firestoreUser);
+            this.store.dispatch(authActions.setUser({ user: user }));
+          });
+
+      } else {
+        //no existe
+        this.userSubscription.unsubscribe(); //Hay que desubscribirse al salir
+        this.store.dispatch(authActions.unSetUser());
+
+      }
+
+    });
 
   }
 
