@@ -1,5 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { filter, Subscription } from 'rxjs';
+import { AppState } from 'src/app/app.reducer';
 import { AuthService } from 'src/app/services/auth.service';
 import Swal from 'sweetalert2';
 
@@ -9,12 +12,25 @@ import Swal from 'sweetalert2';
   styles: [
   ]
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent implements OnInit, OnDestroy {
+
+  usuarioLogueado: string = "";
+  userSubs: Subscription;
 
   constructor(private authService: AuthService,
-    private router: Router) { }
+    private router: Router,
+    private store: Store<AppState>) { }
 
   ngOnInit(): void {
+    this.userSubs = this.store.select('user')
+      .pipe(
+        filter(({ user }) => user != null) //Con el pipe+filter solo dejo pasar la propiedad si existe
+      )
+      .subscribe(({ user }) => { this.usuarioLogueado = user.nombre })
+  }
+
+  ngOnDestroy(): void {
+    this.userSubs.unsubscribe();
   }
 
   logout() {

@@ -7,6 +7,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Store } from '@ngrx/store';
 import { AppState } from '../app.reducer';
 import * as authActions from '../auth/auth.actions';
+import * as ingresoEgresoActions from '../ingreso-egreso/ingreso-egreso.actions';
 
 import { map, Subscription } from 'rxjs';
 import { Usuario } from '../modelos/usuario.model';
@@ -18,6 +19,12 @@ import { Usuario } from '../modelos/usuario.model';
 export class AuthService {
 
   userSubscription: Subscription;
+  private _user: Usuario; //Esta varible solo la voy a usar para leer el uid del usuario. La pongo privada porque no quiero que nadie acceda a ella, y un guin bajo porque voy a hacer un getter. Si es privada no va a teer acceso desde ningun otro sitio
+
+  //Creo el getter
+  get user() {
+    return this._user;
+  }
 
   constructor(public auth: AngularFireAuth,
     public firestore: AngularFirestore,
@@ -38,19 +45,22 @@ export class AuthService {
         this.userSubscription = this.firestore.doc(`${fuser.uid}/usuario`).valueChanges()
           .subscribe((firestoreUser: any) => {
 
-            console.log(firestoreUser);
+            // console.log(firestoreUser); //Aqui esta el uid del usuario logueado
 
             //Aqui almacenamos el usuario de firebase en el Store
             //Primero hay que convertirlo porque no lo puedo enviar como viene de firebase
             const user = Usuario.fromFirebase(firestoreUser);
+            this._user = user; //Meto toda la info de firebase en la variable this.user que he creado
             this.store.dispatch(authActions.setUser({ user: user }));
+
           });
 
       } else {
         //no existe
+        this._user = null; //Para limpiar la variable con los datos de usuario
         this.userSubscription.unsubscribe(); //Hay que desubscribirse al salir
         this.store.dispatch(authActions.unSetUser());
-
+        this.store.dispatch(ingresoEgresoActions.unSetItems());
       }
 
     });
