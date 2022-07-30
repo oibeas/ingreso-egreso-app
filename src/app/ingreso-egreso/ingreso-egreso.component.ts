@@ -32,10 +32,8 @@ export class IngresoEgresoComponent implements OnInit, OnDestroy {
 
     //Aqui nos subscribimos al ui para ver el cambio de estado a isLoading
     this.loadingSubs = this.store.select('ui')
-      .subscribe(ui => {
-        this.cargando = ui.isLoading;
-        // console.log('Estoy cargando 2500ms');
-      })
+      .subscribe(({ isLoading }) => this.cargando = isLoading);
+    // console.log('Estoy cargando 2500ms');
 
 
     this.ingresoForm = this.fb.group({

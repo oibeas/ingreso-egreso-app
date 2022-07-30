@@ -58,7 +58,7 @@ export class AuthService {
       } else {
         //no existe
         this._user = null; //Para limpiar la variable con los datos de usuario
-        this.userSubscription.unsubscribe(); //Hay que desubscribirse al salir
+        this.userSubscription?.unsubscribe(); //Hay que desubscribirse al salir. La ? es para que no de error al entrar
         this.store.dispatch(authActions.unSetUser());
         this.store.dispatch(ingresoEgresoActions.unSetItems());
       }

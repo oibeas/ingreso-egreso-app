@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { AppState } from 'src/app/app.reducer';
+// import { AppState } from 'src/app/app.reducer';  //Ya no cargo el AppState general porque he creado unos auxiliar para ingresoEgreso y el lazyload
 import { IngresoEgreso } from 'src/app/modelos/ingreso-egreso.model';
 
 import { ChartData, ChartEvent, ChartType } from 'chart.js';
+import { AppStateWithIngreso } from '../ingreso-egreso.reducer';
 
 @Component({
   selector: 'app-estadistica',
@@ -25,7 +26,7 @@ export class EstadisticaComponent implements OnInit {
     datasets: [{ data: [] }]
   };
 
-  constructor(private store: Store<AppState>) { }
+  constructor(private store: Store<AppStateWithIngreso>) { }
 
   ngOnInit(): void {
     this.store.select('ingresosEgresos')
